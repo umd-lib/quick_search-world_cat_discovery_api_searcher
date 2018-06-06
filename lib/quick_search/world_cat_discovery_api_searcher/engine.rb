@@ -1,7 +1,5 @@
-module QuickSearch
-  module WorldCatDiscoveryApiSearcher
-    class Engine < ::Rails::Engine
-      isolate_namespace QuickSearch::WorldCatDiscoveryApiSearcher
-    end
+module QuickSearchWorldCatDiscoveryApiSearcher
+  class Engine < ::Rails::Engine
+    isolate_namespace QuickSearchWorldCatDiscoveryApiSearcher
   end
 end

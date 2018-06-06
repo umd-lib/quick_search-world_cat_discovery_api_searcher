@@ -1,2 +1,2 @@
-QuickSearch::WorldCatDiscoveryApiSearcher::Engine.routes.draw do
+QuickSearchWorldCatDiscoveryApiSearcher::Engine.routes.draw do
 end

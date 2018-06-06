@@ -1,5 +1,3 @@
-module QuickSearch
-  module WorldCatDiscoveryApiSearcher
-    VERSION = '0.1.0'
-  end
+module QuickSearchWorldCatDiscoveryApiSearcher
+  VERSION = '0.1.0'
 end
