@@ -1,7 +1,12 @@
 require 'test_helper'
 
-class QuickSearchWorldCatDiscoveryApiSearcher::Test < ActiveSupport::TestCase
-  test "truth" do
-    assert_kind_of Module, QuickSearchWorldCatDiscoveryApiSearcher
+module QuickSearch
+  class WorldCatDiscoveryApiSearcher
+    # DatabaseFinderSearch tests
+    class Test < ActiveSupport::TestCase
+      test 'truth' do
+        assert_kind_of Module, QuickSearch::WorldCatDiscoveryApiSearcher
+      end
+    end
   end
 end
