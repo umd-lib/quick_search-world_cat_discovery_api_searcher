@@ -1,0 +1,16 @@
+# Localization
+#
+# Replace the following placeholders with the correct values for
+# your installation.
+#
+# <NO_RESULTS_LINK>: The link for your site when there are no results
+
+en:
+  world_cat_discovery_api_search:
+    display_name: "Worldcat Discovery API"
+    short_display_name: "Worldcat Discovery API"
+    search_form_placeholder: "Search Worldcat Discovery API"
+    module_callout: "Search Worldcat Discovery API"
+    error_service_message: "searching Worldcat Discovery API"
+    no_results_service_message: "a different search from Worldcat Discovery API"
+    no_results_link: "<NO_RESULTS_LINK>"
