@@ -10,8 +10,8 @@
 defaults: &defaults
   wskey: "<YOUR_WSKEY>"
   secret: "<YOUR_SECRET>"
-  authenticatingInstitutionId: "<A_INSTITUTION_ID>"
-  contextInstitutionId: "<YOUR_INSTITUTION_ID>"
+  authenticatingInstitutionId: "<AUTENTICATING_INSTITUTION_ID>"
+  contextInstitutionId: "<CONTEXT_INSTITUTION_ID>"
   loaded_link: "<LOADED_LINK>"
   url_link: "<URL_LINK>"
 

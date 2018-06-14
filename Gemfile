@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 
 # Declare your gem's dependencies in quick_search-world_cat_discovery_api_searcher.gemspec.
@@ -9,12 +11,6 @@ gemspec
 # your gemspec. These might include edge Rails or gems from your path or
 # Git. Remember to move these dependencies to your gemspec before releasing
 # your gem to rubygems.org.
-
-# Use the oclc-auth gem to get the access token
-gem 'oclc-auth', github: 'OCLC-Developer-Network/oclc-auth-ruby', tag: '1.0.0'
-
-# Use the worldcat-discovery to use the WorldCatDiscoveryAPI
-gem 'worldcat-discovery', github: 'OCLC-Developer-Network/worldcat-discovery-ruby', tag: '1.2.0'
 
 # To use a debugger
 # gem 'byebug', group: [:development, :test]
