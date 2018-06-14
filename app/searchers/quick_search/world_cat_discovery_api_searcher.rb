@@ -14,7 +14,7 @@ module QuickSearch
         result = OpenStruct.new
         result.title = bib.name
         result.link = item_link(bib)
-        result.author = bib.author.try(:name)
+        result.author = bib.author&.name
         result.date = bib.date_published
         @results_list << result
       end
