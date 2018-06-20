@@ -39,7 +39,8 @@ module QuickSearch
     end
 
     def item_link(bib)
-      loaded_link + '#/oclc/' + bib.oclc_number.to_s
+      QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_CONFIG['url_link'] +
+        bib.oclc_number.to_s
     end
 
     def items_per_page
