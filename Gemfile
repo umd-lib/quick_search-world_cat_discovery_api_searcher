@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-source 'https://rubygems.org'
+source 'https://maven.lib.umd.edu/nexus/content/groups/umd-ruby-gems-repository-group/'
 
 # Declare your gem's dependencies in quick_search-world_cat_discovery_api_searcher.gemspec.
 # Bundler will treat runtime dependencies like base dependencies, and
