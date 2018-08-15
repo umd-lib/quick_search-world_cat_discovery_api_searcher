@@ -12,20 +12,21 @@
 # <LOADED_LINK>: The base URL to send the query to
 # <URL_LINK>: The base URL for result links
 # <NO_RESULTS_LINK>: The URL to use when no results are found
-
+# <DOI_LINK>: The base URL to use for retrieving articles with DOIs
 defaults: &defaults
-  # The following propreties are common to both searchers. If the
-  # world_cat_discovery_api searcher is not being used, copy these
-  # properties into the world_cat_discovery_api_article_config.yml file
-  wskey: "<YOUR_WSKEY>"
-  secret: "<YOUR_SECRET>"
-  authenticatingInstitutionId: "<AUTENTICATING_INSTITUTION_ID>"
-  contextInstitutionId: "<CONTEXT_INSTITUTION_ID>"
 
-  # world_cat_discovery_api-specific properties
-  loaded_link: "<LOADED_LINK>"
-  url_link: "<URL_LINK>"
-  no_results_link: "<NO_RESULTS_LINK>"
+  # The following properties should only be defined when the
+  # world_cat_discovery_api_seacher is not being used.
+  # wskey: <%= ENV['WORLD_CAT_DISCOVERY_API_WSKEY'] %>
+  # secret: <%= ENV['WORLD_CAT_DISCOVERY_API_SECRET'] %>
+  # authenticatingInstitutionId: <%= ENV['WORLD_CAT_DISCOVERY_API_INSTITUTION_ID'] %>
+  # contextInstitutionId: <%= ENV['WORLD_CAT_DISCOVERY_API_INSTITUTION_ID'] %>
+
+  # world_cat_discovery_api_article-specific properties
+  loaded_link: <LOADED_LINK>
+  url_link: <URL_LINK>
+  no_results_link: <NO_RESULTS_LINK>
+  doi_link: <DOI_URL>
 
 development:
   <<: *defaults
