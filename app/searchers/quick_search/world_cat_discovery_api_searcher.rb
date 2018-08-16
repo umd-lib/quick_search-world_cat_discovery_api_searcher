@@ -29,7 +29,8 @@ module QuickSearch
       {
         q: http_request_queries['not_escaped'],
         startIndex: @offset,
-        itemsPerPage: items_per_page
+        itemsPerPage: items_per_page,
+        sortBy: 'library_plus_relevance'
       }
     end
 
