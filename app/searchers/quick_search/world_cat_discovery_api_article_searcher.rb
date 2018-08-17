@@ -5,7 +5,7 @@ module QuickSearch
   class WorldCatDiscoveryApiArticleSearcher < WorldCatDiscoveryApiSearcher
     def query_params
       {
-        q: http_request_queries['not_escaped'],
+        q: sanitized_user_search_query,
         itemType: 'artchap',
         startIndex: @offset,
         itemsPerPage: items_per_page,
@@ -15,7 +15,7 @@ module QuickSearch
 
     def loaded_link
       QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_ARTICLE_CONFIG['loaded_link'] +
-        http_request_queries['uri_escaped']
+        sanitized_user_search_query
     end
 
     # Returns the link to use for the given item. If the item has a DOI
