@@ -37,5 +37,9 @@ module QuickSearch
     def doi_link(bib)
       bib.same_as&.to_s
     end
+
+    def include_type?
+      false
+    end
   end
 end

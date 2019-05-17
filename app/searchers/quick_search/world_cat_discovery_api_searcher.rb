@@ -16,6 +16,7 @@ module QuickSearch
         result.link = item_link(bib)
         result.author = bib.author&.name
         result.date = bib.date_published
+        result.format = plain_bib_type(bib) if include_type?
         @results_list << result
       end
       @results_list[0..@per_page - 1]
@@ -58,6 +59,17 @@ module QuickSearch
         return val if @per_page <= val
       end
       allowed_values.last
+    end
+
+    # Strips RDF URI http://shcema.org/ prefix
+    def plain_bib_type(bib)
+      if(bib.type)
+        bib.type.to_str[18..-1]
+      end
+    end
+
+    def include_type?
+      true
     end
   end
 end
