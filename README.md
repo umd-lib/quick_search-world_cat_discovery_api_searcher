@@ -58,3 +58,15 @@ In your search application:
 ```
 <%= render_module(@world_cat_discovery_api_article, 'world_cat_discovery_api_article') %>
 ```
+
+## Additional Result Information
+
+The searchers return the following additional information about each item:
+
+* "item_format"
+  * The "world_cat_discovery_api" searcher will return  one of the following:
+    * "audio_book"
+    * "book"
+    * "e_book"
+    * "other" - Default if the type cannot be determined
+  * The "world_cat_discovery_api_article" searcher always returns "article"
