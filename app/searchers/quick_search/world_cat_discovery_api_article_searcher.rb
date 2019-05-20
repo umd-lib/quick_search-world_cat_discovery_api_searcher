@@ -37,5 +37,11 @@ module QuickSearch
     def doi_link(bib)
       bib.same_as&.to_s
     end
+
+    # Overrides the "item_format" method from the superclass to always
+    # return 'article'
+    def item_format(_bib)
+      'article'
+    end
   end
 end

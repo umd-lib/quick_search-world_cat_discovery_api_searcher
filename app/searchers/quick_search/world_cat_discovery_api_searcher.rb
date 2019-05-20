@@ -10,15 +10,23 @@ module QuickSearch
     def results # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
       return results_list[0..@per_page - 1] if results_list
       @results_list = []
+
       @response.bibs.each do |bib|
         result = OpenStruct.new
         result.title = bib.name
         result.link = item_link(bib)
         result.author = bib.author&.name
         result.date = bib.date_published
+        result.item_format = item_format(bib)
         @results_list << result
       end
       @results_list[0..@per_page - 1]
+    end
+
+    # Returns the item format for the given bib. Using a method so
+    # it can be overridden by subclasses.
+    def item_format(bib)
+      ItemFormats.item_format(bib) || 'other'
     end
 
     def total
