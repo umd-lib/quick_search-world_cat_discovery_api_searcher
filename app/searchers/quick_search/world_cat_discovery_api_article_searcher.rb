@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 module QuickSearch
-  # QuickSearch seacher for WorldCat, restricted to articles
+  # QuickSearch searcher for WorldCat, restricted to articles
   class WorldCatDiscoveryApiArticleSearcher < WorldCatDiscoveryApiSearcher
     def query_params
       {
-        q: sanitized_user_search_query,
+        q: http_request_queries['not_escaped'],
         itemType: 'artchap',
         startIndex: @offset,
         itemsPerPage: items_per_page,
@@ -15,7 +15,7 @@ module QuickSearch
 
     def loaded_link
       QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_ARTICLE_CONFIG['loaded_link'] +
-        sanitized_user_search_query
+        percent_encoded_raw_user_search_query
     end
 
     # Returns the link to use for the given item. If the item has a DOI
