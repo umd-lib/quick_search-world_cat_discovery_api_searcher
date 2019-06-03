@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module QuickSearch
-  # QuickSearch seacher for WorldCat
+  # QuickSearch searcher for WorldCat
   class WorldCatDiscoveryApiSearcher < QuickSearch::Searcher
     def search
       @response = WorldCat::Discovery::Bib.search(query_params)
@@ -35,7 +35,7 @@ module QuickSearch
 
     def query_params
       {
-        q: sanitized_user_search_query,
+        q: http_request_queries['not_escaped'],
         startIndex: @offset,
         itemsPerPage: items_per_page,
         sortBy: 'library_plus_relevance'
@@ -44,7 +44,7 @@ module QuickSearch
 
     def loaded_link
       QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_CONFIG['loaded_link'] +
-        sanitized_user_search_query
+        percent_encoded_raw_user_search_query
     end
 
     def item_link(bib)
@@ -52,12 +52,10 @@ module QuickSearch
         bib.oclc_number.to_s
     end
 
-    # Returns the sanitized search query entered by the user, skipping
+    # Returns the percent-encoded search query entered by the user, skipping
     # the default QuickSearch query filtering
-    def sanitized_user_search_query
-      # Need to use "to_str" as otherwise Japanese text isn't returned
-      # properly
-      sanitize(@q).to_str
+    def percent_encoded_raw_user_search_query
+      CGI.escape(@q)
     end
 
     def items_per_page
