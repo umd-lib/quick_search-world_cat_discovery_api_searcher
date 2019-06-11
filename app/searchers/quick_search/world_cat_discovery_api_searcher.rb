@@ -70,7 +70,7 @@ module QuickSearch
   # Provides a mapping of WorldCat Bibliographic book formats
   # to simple and more normalized types
   class ItemFormats
-    # Map of Bibligraphic book_formats to item format
+    # Map of WorldCat types to item format
     @item_formats = {
       'http://purl.org/library/ArchiveMaterial' => 'archival_material',
       'http://schema.org/Article' => 'article',
@@ -100,56 +100,69 @@ module QuickSearch
       'http://purl.org/ontology/mo/Score' => 'score',
       'http://www.productontology.org/id/Sheet_music' => 'score',
       'http://bibliograph.net/Thesis' => 'thesis',
-      'http://www.productontology.org/id/Thesis' => 'thesis'
-    }
+      'http://www.productontology.org/id/Thesis' => 'thesis',
 
-    # Map of Bibligraphic genres to item format
-    @genres = {
+      # Map of Bibligraphic genres to item format
       'Streaming audio' => 'e_music',
       'Downloadable audio file' => 'e_music',
       'Internet videos' => 'e_video',
       'Streaming videos' => 'e_video'
+    }.transform_keys(&:downcase)
+
+    # Weight the formats, where more specific formats have a greater weight.
+    @format_weights = {
+      'archival_material' => 10,
+      'article' => 5,
+      'audio_book' => 10,
+      'book' => 1,
+      'cd' => 5,
+      'computer_file' => 10,
+      'dvd' => 5,
+      'e_book' => 10,
+      'e_music' => 10,
+      'e_video' => 10,
+      'image' => 10,
+      'journal' => 10,
+      'lp' => 5,
+      'map' => 10,
+      'newspaper' => 10,
+      'score' => 10,
+      'thesis' => 10
     }
 
     # Returns string representing the item format for the given
     # Bibliographic record
-    def self.item_format(bib) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity, Metrics/LineLength
+    def self.item_format(bib) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+      all_types = []
+
+      # Retrieve all the possible types from the bib record
+      all_types << bib.type
+      all_types << bib.types
+      all_types << bib.book_format
+      all_types << bib.genres
+
       best_type = WorldCat::Discovery::Bib.choose_best_type(bib)
-      type = bib.type
+      all_types << best_type.format if best_type.is_a? WorldCat::Discovery::MusicAlbum
 
-      types = bib.types
-      if type.to_s == 'http://schema.org/Book'
-        # Remove Book type from types, if present, as
-        # the array may have a more specific type
-        types = bib.types - [type]
-      end
+      # Remove any nil entries, and turn any arrays into individual elements
+      all_types = all_types.flatten.compact
 
-      book_format = bib.book_format
-      genres = bib.genres
+      # Convert all_types to array of item formats
+      found_formats = all_types.map { |t| @item_formats[t.to_s.downcase] }.compact
 
-      if best_type.is_a? WorldCat::Discovery::MusicAlbum
-        format = best_type.format
+      # Assign a weight to each item format in the array
+      weighted_found_formats = found_formats.map { |f| { field: f, weight: @format_weights[f] } }
 
-        if format.present?
-          music_format = format.map { |f| @item_formats[f.to_s] }.compact.first
-          return music_format
-        end
-      end
+      # Find the item format with the highest weight, also sort by name to
+      # ensure a consistent result in case weights are tied.
+      max_weight_format = weighted_found_formats.sort_by { |f| [f[:weight], f[:field]] }.reverse.first
 
-      type_item_format = @item_formats[type.to_s]
-      types_item_format = types.map { |t| @item_formats[t.to_s] }.compact.first
-      book_item_format = @item_formats[book_format.to_s]
-      genres_item_format = genres.map { |g| @genres[g] }.compact.first
+      # Retrieve the item format (if one exists)
+      item_format = max_weight_format[:field] if max_weight_format
 
-      # Order is important -- we are trying to return the most specific type
-      return book_item_format if book_item_format
-      return types_item_format if types_item_format
-      return type_item_format if type_item_format
-      return genres_item_format if genres_item_format
-
+      # Return either the item_format or default_format
       default_format = 'other'
-      # Return default
-      default_format
+      item_format || default_format
     end
   end
 end
