@@ -26,7 +26,7 @@ module QuickSearch
     # Returns the item format for the given bib. Using a method so
     # it can be overridden by subclasses.
     def item_format(bib)
-      ItemFormats.item_format(bib)
+      WorldCatItemFormats.item_format(bib)
     end
 
     def total
@@ -69,7 +69,7 @@ module QuickSearch
 
   # Provides a mapping of WorldCat Bibliographic book formats
   # to simple and more normalized types
-  class ItemFormats
+  class WorldCatItemFormats
     # Map of WorldCat types to item format
     @item_formats = {
       'http://purl.org/library/ArchiveMaterial' => 'archival_material',
