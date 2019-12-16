@@ -23,20 +23,25 @@ module QuickSearch
     # Returns the link to use for the given item. If the item has a DOI
     # a direct link to the item is returned, otherwise a link to the
     # item in the OCLC catalog is returned.
-    def item_link(bib)
+    def item_link(bib) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
       doi_link = bib.same_as&.to_s
 
       # Return DOI link, if available
       if doi_link
+        Rails.logger.debug('QuickSearch::WorldCatDiscoveryApiArticleSearcher.item_link - DOI link found. Returning.')
         doi_base_url = QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_ARTICLE_CONFIG['doi_link']
         return doi_base_url + doi_link
       end
 
       # Return link WorldCat OpenUrl link resolver, if available
       open_url_link = link_from_open_url(bib)
-      return open_url_link if open_url_link
+      if open_url_link
+        Rails.logger.debug('QuickSearch::WorldCatDiscoveryApiArticleSearcher.item_link - OpenURL link found. Returning.')
+        return open_url_link
+      end
 
-      # Otherwise just return link to OCLC catalog
+      # Otherwise just return link to catalog detail page
+      Rails.logger.debug('QuickSearch::WorldCatDiscoveryApiArticleSearcher.item_link - Defaulting to catalog detail link.')
       QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_ARTICLE_CONFIG['url_link'] +
         bib.oclc_number.to_s
     end
@@ -80,7 +85,19 @@ module QuickSearch
       end
 
       # Return nil if the necessary parameters weren't found.
-      return nil unless issn && volume && issue_number && page_start && date_published
+      unless issn && volume && issue_number && page_start && date_published
+        Rails.logger.debug{
+          <<~LOGGER_END
+            QuickSearch::EbscoDiscoveryServiceApiArticleSearcher.open_url_resolve_link data missing -
+            \tissn: #{issn}
+            \tvolume: #{volume}
+            \tissue_number: #{issue_number}
+            \tpage_start: #{page_start}
+            \tdate_published: #{date_published}
+          LOGGER_END
+        }
+        return nil
+      end
 
       open_url_resolver_service_link =
         QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_ARTICLE_CONFIG['open_url_resolver_service_link']
