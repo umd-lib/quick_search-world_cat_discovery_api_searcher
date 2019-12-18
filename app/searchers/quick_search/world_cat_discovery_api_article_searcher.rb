@@ -20,37 +20,59 @@ module QuickSearch
         percent_encoded_raw_user_search_query
     end
 
-    # Returns the link to use for the given item. If the item has a DOI
-    # a direct link to the item is returned, otherwise a link to the
-    # item in the OCLC catalog is returned.
-    def item_link(bib) # rubocop:disable Metrics/MethodLength
+    # Returns the link to use for the given item.
+    def item_link(bib)
+      doi_link = doi_generator(bib)
+
+      # Return DOI link, in one exists
+      return doi_link if doi_link
+
+      # Query OpenURL resolve service for results
+      open_url_links = open_url_generator(bib)
+      if open_url_links.size.positive?
+        # If there is only one result, return it
+        return open_url_links[0] if open_url_links.size == 1
+
+        # If there are multiple results, return a "Citation Finder" link
+        return citation_generator(bib)
+      end
+
+      # Default -- return link to the catalog detail page
+      catalog_generator(bib)
+    end
+
+    # Returns a single URL representing the link to the DOI, or nil if
+    # no DOI is available
+    def doi_generator(bib)
       doi_link = bib.same_as&.to_s
 
       # Return DOI link, if available
-      if doi_link
-        Rails.logger.debug('QuickSearch::WorldCatDiscoveryApiArticleSearcher.item_link - DOI link found. Returning.')
-        doi_base_url = QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_ARTICLE_CONFIG['doi_link']
-        return doi_base_url + doi_link
-      end
+      return nil unless doi_link
 
-      # Return link WorldCat OpenUrl link resolver, if available
-      link_from_open_url = link_from_open_url(bib)
-      if link_from_open_url
-        Rails.logger.debug(
-          'QuickSearch::WorldCatDiscoveryApiArticleSearcher.item_link - OpenURL link found. Returning.'
-        )
-        return link_from_open_url
-      end
-
-      # Otherwise just return link to catalog detail page
-      Rails.logger.debug('QuickSearch::WorldCatDiscoveryApiArticleSearcher.item_link - Defaulting to catalog detail link.')
-      QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_ARTICLE_CONFIG['url_link'] +
-        bib.oclc_number.to_s
+      Rails.logger.debug('QuickSearch::WorldCatDiscoveryApiArticleSearcher.item_link - DOI link found. Returning.')
+      doi_base_url = QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_ARTICLE_CONFIG['doi_link']
+      doi_base_url + doi_link
     end
 
-    # Returns the DOI link for the given item, or nil if no DOI is present
-    def doi_link(bib)
-      bib.same_as&.to_s
+    # Returns a list of URLs returned by an OpenURL resolver server, or an
+    # empty list if no URLs are found.
+    def open_url_generator(bib)
+      open_url_link = open_url_resolve_link(bib)
+      links = UmdOpenUrl::Resolver.resolve(open_url_link)
+      links
+    end
+
+    # Returns a URL to a citation finder server, or nil if no citation
+    # finder is available
+    def citation_generator(bib)
+      builder = open_url_builder(bib, 'https://umaryland.on.worldcat.org/atoztitles/link')
+      builder&.build
+    end
+
+    # Returns a URL to the catalog detail page. Should not return nil
+    def catalog_generator(bib)
+      QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_ARTICLE_CONFIG['url_link'] +
+        bib.oclc_number.to_s
     end
 
     # Overrides the "item_format" method from the superclass to always
@@ -59,96 +81,44 @@ module QuickSearch
       'article'
     end
 
-    def link_from_open_url(bib)
-      # Generate the link to the WorldCat OpenUrl Resolver
-      open_url_link = open_url_resolve_link(bib)
-      json = UmdOpenUrl::Resolver.resolve(open_url_link)
-      links = UmdOpenUrl::Resolver.parse_response(json)
-
-      return nil if links.nil? || links.size.zero?
-
-      if links.size == 1
-        Rails.logger.debug(
-          'QuickSearch::WorldCatDiscoveryApiArticleSearcher.link_from_open_url - '\
-          'Single OpenURL resolved link found. Returning.'
-        )
-        return link[0]
-      else
-        Rails.logger.debug(
-          'QuickSearch::WorldCatDiscoveryApiArticleSearcher.link_from_open_url - '\
-          "#{links.size} OpenURL resolved links found. Returning link to citation finder"
-        )
-        open_url_link_uri = URI.parse(open_url_link)
-        params_map = CGI.parse(open_url_link_uri.query)
-        filtered_params_map = params_map.reject { |k, _v| k == 'wskey' }
-
-        # Regenerate the query parameters string. Using Rack::Utils.build_query
-        # because it produces a query string without array-based parameters
-        filtered_params = Rack::Utils.build_query(filtered_params_map)
-
-        filtered_params = nil if filtered_params.strip.empty?
-
-        # Construct the link to the resource
-        citiation_finder_uri = URI::HTTP.build(
-          host: 'umaryland.on.worldcat.org',
-          path: '/atoztitles/link',
-          query: filtered_params
-        )
-        citiation_finder_uri.scheme = 'https'
-        citiation_finder_url = citiation_finder_uri.to_s
-        citiation_finder_url
-      end
-    end
-
-    def open_url_resolve_link(bib) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/MethodLength
+    # Returns an OpenUrlBuilder populated with information from the given
+    # bib and link, or nil if an error occurs extracting the bib information
+    def open_url_builder(bib, link) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
       best_type = WorldCat::Discovery::Bib.choose_best_type(bib)
       return nil unless best_type.is_a? WorldCat::Discovery::Article
 
       article = best_type
 
+      builder = UmdOpenUrl::Builder.new(link)
+
       # WorldCat code doesn't always check for nil, so wrap in begin/rescue
       # so that we can just return nil if an error occurs.
       begin
-        issn = article&.periodical&.issn
-        volume = article&.volume&.volume_number
-        issue_number = article&.issue&.issue_number
-        page_start = article&.page_start
-        date_published = article&.date_published
+        builder.issn(article&.periodical&.issn)
+        builder.volume(article&.volume&.volume_number)
+        builder.issue(article&.issue&.issue_number)
+        builder.start_page(article&.page_start)
+        builder.publication_date(article&.date_published)
       rescue StandardError
         return nil
       end
 
-      Rails.logger.debug do
-        <<~LOGGER_END
-          QuickSearch::WorldCatDiscoveryApiArticleSearcher.open_url_resolve_link
-          \tissn: #{issn}
-          \tvolume: #{volume}
-          \tissue_number: #{issue_number}
-          \tpage_start: #{page_start}
-          \tdate_published: #{date_published}
-        LOGGER_END
-      end
+      builder
+    end
 
-      # Return nil if the necessary parameters weren't found.
-      unless issn && volume && issue_number && page_start && date_published
-        Rails.logger.debug do
-          'QuickSearch::WorldCatDiscoveryApiArticleSearcher.open_url_resolve_link data missing. Returning nil'
-        end
-
-        return nil
-      end
-
+    def open_url_resolve_link(bib)
       open_url_resolver_service_link =
         QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_ARTICLE_CONFIG['open_url_resolver_service_link']
+
+      builder = open_url_builder(bib, open_url_resolver_service_link)
+      return nil unless builder
+
       open_url_wskey = QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_ARTICLE_CONFIG['world_cat_open_url_wskey']
+      builder.custom_param('wskey', open_url_wskey)
 
-      b = UmdOpenUrl::Builder.new(open_url_resolver_service_link)
-      b.custom_param('wskey', open_url_wskey).issn(issn).volume(volume)
-       .issue(issue_number).start_page(page_start).publication_date(date_published)
+      return nil unless builder.valid?(%i[wskey issn volume issue start_page publication_date])
 
-      url = b.build
-
-      url
+      builder.build
     end
   end
 end
