@@ -65,7 +65,9 @@ module QuickSearch
     # Returns a URL to a citation finder server, or nil if no citation
     # finder is available
     def citation_generator(bib)
-      builder = open_url_builder(bib, 'https://umaryland.on.worldcat.org/atoztitles/link')
+      builder = open_url_builder(
+        bib, QuickSearch::Engine::WORLD_CAT_DISCOVERY_API_ARTICLE_CONFIG['citation_finder_link']
+      )
       builder&.build
     end
 
