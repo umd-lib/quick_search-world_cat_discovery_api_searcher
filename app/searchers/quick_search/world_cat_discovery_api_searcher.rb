@@ -9,7 +9,15 @@ module QuickSearch
 
     def results # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
       return results_list[0..@per_page - 1] if results_list
+
       @results_list = []
+
+      if @response.is_a? WorldCat::Discovery::ClientRequestError
+        Rails.logger.error(
+          "QuickSearch::WorldCatDiscoveryApiSearcher.results - #{@response.error_code} - #{@response.error_message}"
+        )
+        return @results_list
+      end
 
       @response.bibs.each do |bib|
         result = OpenStruct.new
@@ -30,6 +38,8 @@ module QuickSearch
     end
 
     def total
+      return 0 if @response.is_a? WorldCat::Discovery::ClientRequestError
+
       @response.total_results
     end
 
