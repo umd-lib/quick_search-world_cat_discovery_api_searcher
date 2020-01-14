@@ -22,7 +22,13 @@ Gem::Specification.new do |s|
   s.add_dependency 'umd_open_url'
   s.add_dependency 'worldcat-discovery', '~> 1.2.0.2'
 
-  s.add_development_dependency 'rubocop', '= 0.52.1'
+  s.add_development_dependency 'rubocop', '= 0.78.0'
+  s.add_development_dependency 'rubocop-rails'
   # sqlite3 loaded for testing with the "dummy" application
   s.add_development_dependency 'sqlite3'
+
+  # The "rdf-vocab" gem is need by the "spira" gem loaded by
+  # "worldcat-discovery", for use in testing. Without this
+  # gem, "rails test" will fail.
+  s.add_development_dependency 'rdf-vocab'
 end

@@ -3,6 +3,8 @@ require_relative 'boot'
 require 'rails/all'
 
 Bundler.require(*Rails.groups)
+require 'quick_search'
+require 'worldcat/discovery'
 require "quick_search/world_cat_discovery_api_searcher"
 
 module Dummy
