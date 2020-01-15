@@ -3,17 +3,29 @@
 # Replace the following placeholders with the correct values for
 # your installation.
 #
-# <SEARCH_URL>: The URL for performing the search
-# <QUERY_PARAMS>: Any HTTP query parameters that should be included in the search
-# <HIPPO_SITE_URL>: The URL for the Hippo site
+# <YOUR_WSKEY>: The "wskey" provided by OCLC
+# <YOUR_SECRET>: The "secret" provided by OCLC
+# <AUTHENTICATING_INSTITUTION_ID>: The "authenticating institution id" provided
+#                                 by OCLC
+# <CONTEXT_INSTITUTION_ID>: The "context institution id" provided
+#                           by OCLC (typically the same as the institution id)
+# <LOADED_LINK>: The base URL to send the query to
+# <URL_LINK>: The base URL for result links
+# <NO_RESULTS_LINK>: The URL to use when no results are found
 
 defaults: &defaults
+  # The following propreties are common to both searchers. If the
+  # world_cat_discovery_api searcher is not being used, copy these
+  # properties into the world_cat_discovery_api_article_config.yml file
   wskey: "<YOUR_WSKEY>"
   secret: "<YOUR_SECRET>"
-  authenticatingInstitutionId: "<A_INSTITUTION_ID>"
-  contextInstitutionId: "<YOUR_INSTITUTION_ID>"
+  authenticatingInstitutionId: "<AUTENTICATING_INSTITUTION_ID>"
+  contextInstitutionId: "<CONTEXT_INSTITUTION_ID>"
+
+  # world_cat_discovery_api-specific properties
   loaded_link: "<LOADED_LINK>"
   url_link: "<URL_LINK>"
+  no_results_link: "<NO_RESULTS_LINK>"
 
 development:
   <<: *defaults
